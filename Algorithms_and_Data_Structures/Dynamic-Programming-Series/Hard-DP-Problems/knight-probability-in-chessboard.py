@@ -5,15 +5,35 @@ given a n x n chessboard, a knight starts at the cell (row, column) and attempts
 
 class Solution:
     def knightProbability(self, n: int, k: int, row: int, column: int) -> float:
-        dp = [[[0.0 for _ in range(n)] for _ in range(n)] for _ in range(k+1)]  # create a 3d dp array for moves and positions
-        dp[0][row][column] = 1.0  # start with probability 1 at the initial position
-        directions = [(2,1), (1,2), (-1,2), (-2,1), (-2,-1), (-1,-2), (1,-2), (2,-1)]  # all possible knight moves
-        for move in range(k):  # loop through each move
-            for i in range(n):  # loop through each row
-                for j in range(n):  # loop through each column
-                    if dp[move][i][j] > 0:  # if the knight can be at (i, j) after 'move' moves
-                        for dx, dy in directions:  # try all possible moves
-                            ni, nj = i + dx, j + dy  # calculate new position
-                            if 0 <= ni < n and 0 <= nj < n:  # check if new position is on the board
-                                dp[move+1][ni][nj] += dp[move][i][j] / 8.0  # update probability for the new position
-        return sum(dp[k][i][j] for i in range(n) for j in range(n))  # sum probabilities after k moves 
+        # Initialize a 2D array to store the probability of the knight being at each cell after the current number of moves
+        prev = [[0.0] * n for _ in range(n)]
+        # The knight starts at (row, column) with probability 1
+        prev[row][column] = 1.0
+
+        # All possible moves a knight can make
+        directions = [
+            (2, 1), (1, 2), (-1, 2), (-2, 1),
+            (-2, -1), (-1, -2), (1, -2), (2, -1)
+        ]
+
+        # Repeat for each move from 1 to k
+        for _ in range(k):
+            # Initialize a new 2D array for the next move's probabilities
+            curr = [[0.0] * n for _ in range(n)]
+            # Loop through every cell on the board
+            for i in range(n):
+                for j in range(n):
+                    # If the knight can be at (i, j) after the previous move
+                    if prev[i][j] > 0:
+                        # Try all possible knight moves from (i, j)
+                        for dx, dy in directions:
+                            ni, nj = i + dx, j + dy  # Calculate new position
+                            # If the new position is on the board
+                            if 0 <= ni < n and 0 <= nj < n:
+                                # Add the probability of reaching (ni, nj) from (i, j)
+                                curr[ni][nj] += prev[i][j] / 8.0
+            # Update prev to be the current move's probabilities for the next iteration
+            prev = curr
+
+        # Sum the probabilities of the knight being on any cell after k moves
+        return sum(prev[i][j] for i in range(n) for j in range(n))
